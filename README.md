@@ -4,7 +4,7 @@
 
 **Electronic companion of the paper:** *[Data-Driven Reliable Facility Location Design](https://papers.ssrn.com/sol3/papers.cfm?abstract_id=4525872)* by
 
-- Hao Shen: School of Business, Renmin University of China,  Beijing, China[shenhao@rmbs.ruc.edu.cn](mailto:shenhao@rmbs.ruc.edu.cn)
+- Hao Shen: School of Business, Renmin University of China,  Beijing, China,  [shenhao@rmbs.ruc.edu.cn](mailto:shenhao@rmbs.ruc.edu.cn)
 - Mengying Xue: International Institute of Finance, School of Management, University of Science and Technology of Chinaa, Hefei, Anhui, China, [xmy2021@ustc.edu.cn](mailto:xmy2021@ustc.edu.cn)
 - Zuo-Jun Max Shen: Faculty of Engineering;  Faculty of Business and Economics, The University of Hong Kong, Hong Kong, China [maxshen@hku.hk](mailto:maxshen@hku.hk)
 
