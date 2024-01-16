@@ -2,7 +2,7 @@
 
 ## Overview
 
-**Electronic companion of the paper:** *[Data-Driven Reliable Facility Location Problem](https://papers.ssrn.com/sol3/papers.cfm?abstract_id=4525872)* by
+**Electronic companion of the paper:** *[Data-Driven Reliable Facility Location Design](https://papers.ssrn.com/sol3/papers.cfm?abstract_id=4525872)* by
 
 - Hao Shen: School of Business, Renmin University of China,  Beijing, China[shenhao@rmbs.ruc.edu.cn](mailto:shenhao@rmbs.ruc.edu.cn)
 - Mengying Xue: International Institute of Finance, School of Management, University of Science and Technology of Chinaa, Hefei, Anhui, China, [xmy2021@ustc.edu.cn](mailto:xmy2021@ustc.edu.cn)
@@ -24,7 +24,7 @@ This code was tested on:
 - `SampleAverage/`: Python code for RFLP using sample average approximation method.
 - `Reliability/`: Python codes for testing reliability and generating average performances of RFLP using PUB estimator, Wasserstein DRO, and moment based methods.
 - `Utility/`: Python code for utility functions and constants used in the experiments
-- `Plot/`: Python code for the plots in the paper [Data-driven Reliable Faciltiy Location Problem](https://papers.ssrn.com/sol3/papers.cfm?abstract_id=4525872).
+- `Plot/`: Python code for the plots in the paper [Data-driven Reliable Faciltiy Location Design](https://papers.ssrn.com/sol3/papers.cfm?abstract_id=4525872).
 
 ## Scripts and Modules
 
