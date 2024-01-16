@@ -4,7 +4,7 @@
 
 This repository contains numerical implementation for reliable facility location problem (RFLP) in the paper [Data-driven Reliable Faciltiy Location Problem](https://papers.ssrn.com/sol3/papers.cfm?abstract_id=4525872). 
 
-## Foldes
+## Folders
 
 - `Data/`: Network data from Synder and Daskin (2005) [source]([Larry Snyder &raquo; Data Sets for &#8220;Reliability Models for Facility Location: The Expected Failure Cost Case&#8221;](https://coral.ise.lehigh.edu/larry/research/data-sets-for-reliability-models-for-facility-location-the-expected-failure-cost-case/)), processed weather data from NOAA from 1950 to 2021 in json file, [source]([Storm Events Database | National Centers for Environmental Information](https://www.ncdc.noaa.gov/stormevents/ftp.jsp)[Storm Events Database | National Centers for Environmental Information](https://www.ncdc.noaa.gov/stormevents/ftp.jsp); folders for synthetic data
 - `DataRelated/`: Python code for preprocessing raw data and generating synthetic data used in numerical studies.
