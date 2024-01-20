@@ -95,8 +95,8 @@ def LoadDatafromCSV(data, coor):
                 end_year = int(data_event['END_YEARMONTH'][i] / 100)
                 end_month = int(data_event['END_YEARMONTH'][i] - 100 * end_year)
 
-                start_time = (begin_year - START_YEAR) * 4 + math.ceil(begin_month/3) - 1
-                end_time = (end_year - START_YEAR) * 4 + math.ceil(end_month/3) - 1
+                start_time = (begin_year - START_YEAR) * 12 + begin_month - 1
+                end_time = (end_year - START_YEAR) * 12 + end_month - 1
 
                 begin_lat = data_event['BEGIN_LAT'][i]
                 begin_lon = data_event['BEGIN_LON'][i]
