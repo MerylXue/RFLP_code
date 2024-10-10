@@ -13,7 +13,7 @@ import time
 from Utility.Utils import positive_num
 
 ## the optimization using wasserstein DRO
-## The equivalent MILP formulation refers to Xie (2020)
+## The equivalent MILP formulation refers to Xie (2019)
 ## eps: the ambiguity size of Wassserstein ball
 def WassersteinOpt(rawdata, info, eps):
     num_data = len(rawdata)
@@ -30,7 +30,7 @@ def WassersteinOpt(rawdata, info, eps):
     J = range(num_J)
 
     model = Model('Wasserstein')
-    model.Params.OutputFlag = False
+    # model.Params.OutputFlag = False
     st = time.time()
     model.setParam(GRB.Param.TimeLimit, 900)
     x = model.addVars(num_J, vtype=GRB.BINARY)

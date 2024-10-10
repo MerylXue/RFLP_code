@@ -37,7 +37,7 @@ def GetOptEpsWasser(info, beta_, rawdata):
     left = 0.0
     num_I = info['num_customer']
     right = Right
-    opt_eps = -1
+    opt_eps = 1
     avg_out_of_sample_lst = []
     t_eps = 0
     count_eps = 0

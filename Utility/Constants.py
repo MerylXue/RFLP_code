@@ -20,10 +20,14 @@ Right = 1
 converge_diff = 1E-3
 # number of iteration for calculating reliability
 Num_reliability = 50
+# number of simulate for comparing the reliability
+NumSimulate = 100
+
+
 Num_real = 1000000
 MAXNUMBER = 1E9
-# number of simulate for comparing the reliability
-NumSimulate = 10
+
+TIMELIMIT = 18000
 ## search step in the binary search of ambiguity size
 search_step = 8
 
@@ -31,9 +35,8 @@ search_step = 8
 T_period = int((2019 - 1950) / 5) + 1
 T_threshold = [[0,0] for i in range(T_period)]
 
-START_YEAR = 1955
-END_YEAR = 2019
-
+START_YEAR = 1996
+END_YEAR = 2021
 EpsSet = [i * 1E-1 for i in range(2,10,2)] + [i * 1E-2 for i in range(2,10,2)] + [i * 1E-3 for i in range(1,10)] \
          + [i * 1E-4 for i in range(1,10)]
 NumCrossValidation = 5

@@ -10,16 +10,15 @@ Last Revised on Jan 12, 2024
 
 
 from DataRelated.DataGenerateStorm import ReadRawDataStormFromFile
-from Reliability.test_reliability_moment import run_Storm_moment
+from Reliability.test_reliability_moment import run_Storm_mm
 def run_Storm():
     num_node = 49
-    num_cov_lst = [10]
+    num_cov = 2
 
-    train_length = 5
+    train_length = 1
     test_length = 1
     beta_ = 0.2
-    for num_cov in num_cov_lst:
-        ## Read NOAA data set
-        train_data_lst, test_data_lst, info = ReadRawDataStormFromFile(num_node, num_cov, train_length, test_length)
-        run_Storm_moment(train_data_lst, test_data_lst, info, num_node, num_cov, beta_,  train_length, test_length)
+    ## Read case study data set
+    train_data_lst, test_data_lst, info = ReadRawDataStormFromFile(num_node, num_cov, train_length, test_length)
+    run_Storm_mm(train_data_lst, test_data_lst, info, num_node, num_cov, beta_,  train_length, test_length)
 run_Storm()

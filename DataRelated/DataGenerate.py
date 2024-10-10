@@ -18,8 +18,11 @@ import pickle
 from Utility.Utils import positive_num
 
 
+##Synthetic data for the numerical tests with multi covariates
+## data for the tests in Section 6.2
 
-# read the information from the data set in Snyder and Daskin (2005)
+
+#read location information from UCFLDataXX.txt files
 def read_from_txt(file):
     mu = []
     o = []
@@ -44,25 +47,22 @@ def read_from_txt(file):
     num_J = len(coor_J)
     return mu,  f, o, num_I, num_J,  coor_I, coor_J
 
-# Calculate the distance between two locations
+# return the distance of two locations
 def MapDistance(coor_I, coor_J):
     num_I = len(coor_I)
     num_J = len(coor_J)
     d0 = [[lat_dis(coor_I[i], coor_J[j]) for j in range(num_J)] for i in range(num_I)]
     return d0
 
-# Calculate the distance of a given location to the center of storm in NewOrleans
-def DistNewOrleans(coor_J):
-    dist_NO = [Distance_NewOrleans(coor_J[j]) for j in range(len(coor_J))]
-    return dist_NO
 
-## Generate synthetic data with covariates (for test in Section 6)
 def DataGeneration_train_test_Covariate(num_J, max_data_length, demand_val, max_demand, cov_marginal_prob, cov_matrix, mu_coeff, cov_threshold, cov_set):
     num_I = num_J
 
     mean = [0 for i in range(num_I + num_J)]
     #generate covariate
     cov_data = np.random.choice(cov_set, size = max_data_length, p=cov_marginal_prob)
+
+
     # the generated covariate sets
     cov_set_lean = np.unique(cov_data)
     # the number of each coviarates
@@ -74,9 +74,10 @@ def DataGeneration_train_test_Covariate(num_J, max_data_length, demand_val, max_
         cov_position.update({cov: np.where(cov_data == cov)[0]})
 
     raw_data = {}
-
+    # print(cov_matrix)
+    # print(mu_coeff)
     data = np.zeros((max_data_length,num_I+num_J+1))
-
+    # data[:, -1] = cov_data
     for cov in cov_set_lean:
         n_size = cov_num[np.where(cov_set == cov)[0][0]]
         raw_data.update({cov: multivariate_normal.rvs(mean, cov_matrix[cov], size=n_size).reshape(n_size, num_I+num_J)})
@@ -87,7 +88,10 @@ def DataGeneration_train_test_Covariate(num_J, max_data_length, demand_val, max_
         idx = np.where(cov_position[cov] == t)[0][0]
 
         for i in range(num_I):
-            data[t][i] = min(max(demand_val[i]*(mu_coeff[cov] + raw_data[cov][idx][i]), 0), max_demand[i])
+            # data[t][i] = min(max(demand_val[i]*(mu_coeff[cov] + raw_data[cov][idx][i]), 0), max_demand[i])
+            # data[t][i] = max(demand_val[i]*(mu_coeff[cov] + raw_data[cov][idx][i]), 0)
+            ## make the data heavy tail
+            data[t][i] = demand_val[i] * mu_coeff[cov] * np.exp(raw_data[cov][idx][i])
         for i in range(num_I, num_I + num_J):
             if raw_data[cov][idx][i] > math.sqrt(2) * erfinv(2 * cov_threshold[cov] - 1):
                 ## operate
@@ -100,15 +104,17 @@ def DataGeneration_train_test_Covariate(num_J, max_data_length, demand_val, max_
     return df
 
 
-## generate correlated covariate data
+# generate the covariate dependent distributions for the location states and demands
 def GenerateDistribution(num_node,num_cov):
-    # the location data is obtained from Synder and Daskin's paper
     file = 'Data/UCFLData%d.txt' % num_node
     mu, f, o, num_I, num_J, coor_I, coor_J = read_from_txt(file)
+    # f = f + [0]
+    # d0 = MapDistance(coor_I, coor_J)
+    # dist = [d0[i] + [o[i]] for i in range(num_I)]
 
     cov_set = np.array(range(1, num_cov+1))
-    ## randomly generate marginal probabilities
-    cov_marginal_prob = [i+1 for i in range(num_cov)]
+    # cov_marginal_prob = np.random.uniform(low = 0.2, high = 0.8, size = num_cov)
+    cov_marginal_prob = [(num_cov-i)**2 for i in range(num_cov)]
     cov_marginal_prob = cov_marginal_prob/np.sum(cov_marginal_prob)
 
 
@@ -117,19 +123,19 @@ def GenerateDistribution(num_node,num_cov):
     cov_threshold = {}
     for cov in cov_set:
         cov_matrix.update({cov: datasets.make_spd_matrix(num_J + num_I)})
-        mu_coeff.update({cov: 0.6/cov + positive_num(cov-1, int(num_cov/2))*1})
+        mu_coeff.update({cov: 0.8/cov + positive_num(cov-1, int(num_cov/2))*1})
         cov_threshold.update({cov: min(0.1 + 0.2 *(cov-1), 0.8)})
     distribution = {}
     distribution.update({'cov_marginal_prob':cov_marginal_prob})
     distribution.update({'cov_matrix': cov_matrix})
     distribution.update({'mu_coeff': mu_coeff})
     distribution.update({'cov_threshold': cov_threshold})
-
+    print(distribution)
     with open('Data/RawDataDistribution/Node_%d-Cov_%d.pkl'%(num_node, num_cov),'wb') as tf:
         pickle.dump(distribution, tf)
     return distribution
 
-
+# generate test data given the distribution in the multi-covariate case
 def GenerateTestDataFromDistributionFile(distribution, num_node, num_cov, test_data_length):
     cov_marginal_prob = distribution['cov_marginal_prob']
     cov_matrix = distribution['cov_matrix']
@@ -153,7 +159,7 @@ def GenerateTestDataFromDistributionFile(distribution, num_node, num_cov, test_d
             outline = ['%s'%name]
             output_file.write(','.join(outline) + '\n')
 
-
+# generate training data given the distribution in the multi-covariate case
 def GenerateRawTrainDatafromDistribution(distribution, num_node, num_cov, max_data_length):
     file = 'Data/UCFLData%d.txt' % num_node
     mu, f, o, num_I, num_J, coor_I, coor_J = read_from_txt(file)
@@ -169,7 +175,6 @@ def GenerateRawTrainDatafromDistribution(distribution, num_node, num_cov, max_da
     cov_threshold = distribution['cov_threshold']
 
     for k in range(NumSimulate):
-        # rawdata_train, rawdata_test = DataGeneration_train_test(num_J, num_data, mu, max_demand, num_cov)
         rawdata_train = DataGeneration_train_test_Covariate(num_J, max_data_length, mu, max_demand, cov_marginal_prob,
                                                             cov_matrix, mu_coeff, cov_threshold, cov_set)
         train_file_name = 'Data/RawData/Train_Node_%d-Cov_%d-Simulate_%d.csv'% ( num_node, num_cov, k)
@@ -177,14 +182,12 @@ def GenerateRawTrainDatafromDistribution(distribution, num_node, num_cov, max_da
         train_file_name_lst.append(train_file_name)
 
 
-
     with open('Data/RawDataFileName/Train_Node_%d-Cov_%d.txt'% (num_node, num_cov), 'w') \
             as output_file:
         for name in train_file_name_lst:
             outline = ['%s'%name]
             output_file.write(','.join(outline) + '\n')
-
-## generate synthetic data for sample average approximation method
+# generate large data set for approximating the true optimum given the distribution in the multi-covariate case
 def GenerateSAADatafromDistribution(distribution, num_node, num_cov):
     file = 'Data/UCFLData%d.txt' % num_node
     mu, f, o, num_I, num_J, coor_I, coor_J = read_from_txt(file)
@@ -209,11 +212,12 @@ def GenerateSAADatafromDistribution(distribution, num_node, num_cov):
         for name in real_file_name_lst:
             outline = ['%s' % name]
             output_file.write(','.join(outline) + '\n')
-
+# generate all the data sets in the multi-covariate case
 def GenerateRawDataFileList(num_node, num_cov, max_data_length):
     distribution = GenerateDistribution(num_node, num_cov)
     GenerateRawTrainDatafromDistribution(distribution, num_node, num_cov, max_data_length)
     GenerateTestDataFromDistributionFile(distribution, num_node, num_cov, NumTestData)
+    GenerateSAADatafromDistribution(distribution, num_node, num_cov)
 ## read distribution from file
 
 
@@ -223,13 +227,13 @@ def ReadDistribution(num_node, num_cov):
     data = pickle.load(input_file)
 
     cov_marginal_prob = data['cov_marginal_prob']
-    # print(cov_marginal_prob)
+    print(cov_marginal_prob)
     cov_matrix = data['cov_matrix']
-    # print(cov_matrix)
+    print(cov_matrix)
     mu_coeff = data['mu_coeff']
-    # print(mu_coeff)
+    print(mu_coeff)
     cov_threshold = data['cov_threshold']
-    # print(cov_threshold)
+    print(cov_threshold)
     return data
 
 def GenerateSAAData(num_node, num_cov):
@@ -265,8 +269,8 @@ def ReadRawTrainDataFromFile(num_node, num_data, num_cov):
                   'num_cov': num_cov}
     return train_data_lst, info
 
+# read the test data from Data/RawData/ in the multi-covariate case
 def ReadRawTestDataFromFile(num_node, num_cov):
-
     test_data_name = 'Data/RawData/Test_Node_%d-Cov_%d-Length_%d.csv'%(num_node, num_cov, NumTestData)
     test_data = pd.read_csv(test_data_name, low_memory=False)
         # print(test_data_lst[-1].loc[0:10])

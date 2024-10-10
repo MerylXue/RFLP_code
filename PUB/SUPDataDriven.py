@@ -1,16 +1,6 @@
-"""
-Code for "Hao Shen, Mengying Xue, and Zuojun Max Shen (2023),
-Data-driven Reliable Faciltiy Location Problem, Management Science, Forthcoming",
-
-Last Revised on Jan 12, 2024
-@author: Mengying Xue
-
-This file defines the optimization function with constraint generation, see the algorithm in Section 3
-"""
-
 from gurobipy import *
 import time
-from PUB.SUPFunc import OperCostCov
+from PUB.SUPFunc import  TotalFixedCost, OperCostCov, TotalOperCostCov
 
 
 
@@ -29,7 +19,7 @@ def SupLazy_AggragateCov(info,  delta_marginal_prob_cov, delta_zeta_cond, lambda
 
     model = Model('SUP')
     model.modelSense = GRB.MINIMIZE
-    model.Params.OutputFlag = False
+    # model.Params.OutputFlag = False
     model.setParam(GRB.Param.TimeLimit, 900)
 
     x = model.addVars(num_J, vtype=GRB.BINARY, obj=f[:-1])
@@ -41,20 +31,27 @@ def SupLazy_AggragateCov(info,  delta_marginal_prob_cov, delta_zeta_cond, lambda
          for i in I )
     )
 
-    ## constraint generation using callback in Gurobi
     def mycallback(model, where):
         if where == GRB.Callback.MIPSOL:
             relg = model.cbGetSolution(model._varg)
             relx = model.cbGetSolution(model._varx)
             Sx = [j for j in J if relx[j] > .5]
-
+            # print(Sx)
+            # print(relg)
+            # print(relx)
 
             for i in I:
                 c_Sx = OperCostCov(i, Sx, num_K, delta_marginal_prob_cov,
                                         delta_zeta_cond[i],lambda_[i], num_J, d, wc_d[i])
-
+                # print(i,c_Sx,relg[i])
 
                 if relg[i] < c_Sx:
+                    # print([OperCostCov(i, Sx + [j], num_K, delta_marginal_prob_cov, delta_zeta_cond[i],
+                    #                                     lambda_[i],num_J, d, wc_d[i]) - c_Sx for j in J if j not in Sx])
+                    # model.cbLazy(model._varg[i] >= c_Sx \
+                    #              + LinExpr([OperCostCov(i, Sx + [j], num_K, delta_marginal_prob_cov, delta_zeta_cond[i],
+                    #                                     lambda_[i],num_J, d, wc_d[i]) - c_Sx for j in J if j not in Sx],
+                    #                        [model._varx[j] for j in J if j not in Sx]))
                     model.cbLazy(model._varg[i] >= c_Sx \
                                  + quicksum((OperCostCov(i, Sx + [j], num_K, delta_marginal_prob_cov, delta_zeta_cond[i],
                                                         lambda_[i], num_J, d, wc_d[i]) - c_Sx) * model._varx[j]
@@ -75,13 +72,14 @@ def SupLazy_AggragateCov(info,  delta_marginal_prob_cov, delta_zeta_cond, lambda
     #                                                     lambda_[i],num_J, d, wc_d[i])
     #     gamma_ = gamma[i].x
     #     # print(cost, gamma_)
-
-
+    #
+    #
     # total_oper_cost = TotalOperCostCov(loc_chosen, num_I, num_K, delta_marginal_prob_cov, delta_zeta_cond, lambda_, num_J, d,  wc_d)
     # total_fixed_cost = TotalFixedCost(loc_chosen, f)
     obj_value = model.getObjective().getValue()
 
-
+    # print("obj %f, sum_lambda %f"%(obj_value,
+    #                                sum([delta_marginal_prob_cov[k] * d[i][-1] * lambda_[i][k] for i in I for k in range(num_K)])))
     return loc_chosen, obj_value, tend - tstart, gap
 
 

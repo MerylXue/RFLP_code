@@ -11,20 +11,20 @@ Last Revised on Jan 12, 2024
 
 
 
-from DataRelated.DataGenerate import  ReadRawTrainDataFromFile, ReadRawTestDataFromFile
-from Reliability.test_reliability_Wass import test_Reliability_Wasserstein
+from DataRelated.DataGenerateNoCov import  ReadRawTrainDataNoCovFromFile, ReadRawTestDataNoCovFromFile
+from Reliability.test_reliability_Wasserstein import test_Reliability_Wasserstein
 def run_PUB():
     num_node = 10
     beta_lst = [0.1]
     num_cov_set = [2]
-    NumDataSet = [500]
+    NumDataSet = [750]
     ## beta = 0.25, data = 100
 
-
-    for num_data in NumDataSet:
-        for num_cov in num_cov_set:
+    setting_lst = [(1.6, True)]
+    for (mu_coeff, truncate) in setting_lst:
+        for num_data in NumDataSet:
             for beta_ in beta_lst:
-                train_data_lst, info = ReadRawTrainDataFromFile(num_node, num_data, num_cov)
-                test_data = ReadRawTestDataFromFile(num_node, num_cov)
-                test_Reliability_Wasserstein(train_data_lst, test_data, info, num_node, num_data, num_cov, beta_)
+                train_data_lst, info = ReadRawTrainDataNoCovFromFile(num_node, mu_coeff, truncate, num_data)
+                test_data = ReadRawTestDataNoCovFromFile(num_node, mu_coeff, truncate)
+                test_Reliability_Wasserstein(train_data_lst, test_data, info, num_node, num_data, 1, beta_, mu_coeff, truncate)
 run_PUB()

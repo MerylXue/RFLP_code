@@ -1,25 +1,27 @@
-"""
-Code for "Hao Shen, Mengying Xue, and Zuojun Max Shen (2023),
-Data-driven Reliable Faciltiy Location Problem, Management Science, Forthcoming",
-
-Last Revised on Jan 12, 2024
-@author: Mengying Xue
-"""
-
 #How to design the demand value under real disruption?
 # When disruption happens, the demand has prob=(0.3,0.4,0.4)
 # when disruption does not happen,  the demand has prob=(0.5,0.3,0.2)
-
 import numpy as np
 import pandas as pd
 import xlrd
 import json
 from DataRelated.DataGenerate import MapDistance
-from Utility.Constants import demand_coeff, START_YEAR, END_YEAR
-
+from Utility.Constants import demand_coeff, START_YEAR,END_YEAR
+import math
+import numpy as np
+import pandas as pd
+import xlrd
+import json
+from DataRelated.DataGenerate import MapDistance
+from Utility.Constants import demand_coeff, START_YEAR,END_YEAR
+import math
 def read_excel(file):
     wb = xlrd.open_workbook(filename=file)
     sheet1 = wb.sheet_by_index(0)
+    # sheet2 = wb.sheet_by_name('data')
+    #
+    # print(sheet1, sheet2)
+
     # Get the total number of locatons
 
     rows = sheet1.row_values(2)  # 获取行内容
@@ -32,6 +34,9 @@ def read_excel(file):
     col_f = sheet1.col_values(4)
     col_lat = sheet1.col_values(5)
     col_lon = sheet1.col_values(6)
+    # print(N_location)
+    #
+    # print(col_lat)
     mu = [col_mu[j + 3] for j in range(num_J)]
     f = [col_f[j + 3] for j in range(num_J)]
     coor_I = [(col_lat[j + 3], col_lon[j + 3]) for j in range(num_J)]
@@ -42,11 +47,15 @@ def read_excel(file):
     return mu, f, o, num_I, num_J, coor_I, coor_J
 def DataGenerationStormSce(num_J, js, cov_lst, begin_year, end_year, mu, low_demand, high_demand):
     num_I = num_J
+    # start_time = (begin_year - START_YEAR) * 4 + math.ceil(1 / 3) - 1
+    # end_time = (end_year - START_YEAR) * 4 + math.ceil(12 / 3) - 1
+
     start_time = (begin_year - START_YEAR) * 12
     end_time = (end_year - START_YEAR) * 12 + 12 - 1
     data = []
     for cov_sublist in cov_lst:
         for t in range(start_time, end_time+1):
+            # if sum(js[cov][t]) > 0:
 
             data_temp = [0 for i in range(num_I+num_J+1)]
             data_temp[-1] = cov_lst.index(cov_sublist) + 1
@@ -61,6 +70,8 @@ def DataGenerationStormSce(num_J, js, cov_lst, begin_year, end_year, mu, low_dem
                     data_temp[j] = max(min(np.random.normal(low_demand/2), high_demand),0) * mu[j]
                     data_temp[num_I + j] = 0
             data.append(data_temp)
+
+    #
     df = pd.DataFrame(data,
                       columns=['d_%d' % i for i in range(num_I)] + ['disrupt_%d' % j for j in range(num_J)] + ['cov'])
 
@@ -68,6 +79,8 @@ def DataGenerationStormSce(num_J, js, cov_lst, begin_year, end_year, mu, low_dem
 
 def DataGenerationStormScePD(num_J, df, cov_lst, begin_year, end_year, mu, low_demand, high_demand):
     num_I = num_J
+    # start_time = (begin_year - START_YEAR) * 4 + math.ceil(1 / 3) - 1
+    # end_time = (end_year - START_YEAR) * 4 + math.ceil(12 / 3) - 1
 
     df = df[(df['start_year'] >= begin_year) & (df['end_year'] <= end_year)].reset_index(drop = True)
     data = []
@@ -98,8 +111,10 @@ def RawDataGenerateStormFileList(num_node, train_length, test_length, low_demand
     disrupt_file = open('Data/Storm/disruption_%d.json' % num_node, 'r')
     disruption_js = json.load(disrupt_file)
     event_lst = list(disruption_js.keys())
-
-
+    # cov_lst = [[s for s in event_lst if 'Wind' in s], [s for s in event_lst if 'Flood' in s],  [s for s in event_lst  if not 'Wind' in s and not 'Flood' in s]]
+    #
+    # disruption = pd.read_csv('Data/Storm/disruption_%d.csv' % num_node, low_memory=False)
+    # event_lst = list(disruption['event'])
     cov_lst = [[s for s in event_lst if 'Wind' in s], [s for s in event_lst if not 'Wind' in s]]
     print(cov_lst)
 
@@ -109,7 +124,12 @@ def RawDataGenerateStormFileList(num_node, train_length, test_length, low_demand
 
     f = f + [0]
     d0 = MapDistance(coor_I, coor_J)
+    # max_demand = [mu[i] * demand_coeff for i in range(num_I)]
     dist = [d0[i] + [o[i]] for i in range(num_I)]
+    # df = pd.read_csv(disrupt_file, low_memory=False)
+
+    # high_prob = [0.1, 0.1, 0.8]
+    # low_prob = [0.8, 0.1, 0.1]
 
 
     train_file_name_lst = []
@@ -120,7 +140,7 @@ def RawDataGenerateStormFileList(num_node, train_length, test_length, low_demand
         raw_data_test = DataGenerationStormSce(num_J, disruption_js, cov_lst, t + train_length, t + train_length + test_length - 1, mu,  low_demand, high_demand)
         train_file_name = 'Data/RawDataStorm/Train-TrainLength_%d-TestLength_%d-Node_%d-Cov_%d-Year_%d.csv'%\
                           (train_length, test_length, num_node, len(cov_lst), t)
-        # print(len(raw_data_train), len(raw_data_test))
+        print(len(raw_data_train), len(raw_data_test))
         raw_data_train.to_csv(train_file_name, index=False)
         train_file_name_lst.append(train_file_name)
 
@@ -178,4 +198,3 @@ def ReadRawDataStormFromFile(num_node, num_cov, train_length, test_length):
                   'max_demand': max_demand,
                   'num_cov': num_cov}
     return train_data_lst, test_data_lst, info
-
